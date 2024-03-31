@@ -4,6 +4,7 @@
 
 
 # dependencies
+/.firebase
 /node_modules
 /.pnp
 .pnp.js
