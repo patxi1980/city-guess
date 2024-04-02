@@ -1,8 +1,9 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import './App.css';
 import jsonCities from './cities.json';
 
 import {City, GameComponent} from "./Components/Game/Game";
+import {GameContextProvider} from "./Components/Game/GameContext";
 
 let cities = jsonCities;
 
@@ -25,7 +26,9 @@ cities = prepareCities(cities);
 function App() {
   return (
       <div className="App">
-        <GameComponent cities={cities} />
+          <GameContextProvider cities={cities}>
+              <GameComponent />
+          </GameContextProvider>
         <a href='https://mxd.codes/articles/how-to-create-a-web-map-with-open-layers-and-react'>Guide for open layers and react</a>
       </div>
   );
