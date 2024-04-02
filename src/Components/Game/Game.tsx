@@ -1,18 +1,12 @@
 
-import React, {useContext, useRef, useState} from "react";
+import React, {useContext} from "react";
 import {MapComponent} from "../Map/Map";
 import {GameContext} from "./GameContext";
-
-
 
 
 export interface City {
     name: string,
     coords: number[],
-}
-
-export interface MapStateType {
-    city: City,
 }
 
 const kmsToReduceLives: number = 50;
