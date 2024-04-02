@@ -99,43 +99,26 @@ const initMap = (gameContext: GameContextType, onChangeScore: any) =>  {
         onChangeScore(distanceInKms);
     })
 
-    // newMap.setTarget(mapElement.current);
     return newMap;
 };
-
-//const newMap = initMap();
 
 export const MapComponent = (({onChangeScore}: MapComponentProps) => {
 
     const gameContext = useContext(GameContext);
     const mapElement = useRef<HTMLDivElement>(null!);
 
-    let newMap2: any = null;
-    newMap2 = React.useMemo(() => {
-        if (newMap2 === null) {
+    let newMap: any = null;
+    newMap = React.useMemo(() => {
+        if (newMap === null) {
             return initMap(gameContext, onChangeScore);
         }
-        return newMap2;
-    }, [newMap2, gameContext, onChangeScore]);
-
-    // newMap2?.setTarget(mapElement.current);
-
-    // setMap(newMap);
+        return newMap;
+    }, [newMap, gameContext, onChangeScore]);
 
     useEffect(() => {
         if (gameContext.game.cityPos === 0) {
-            newMap2.setTarget(mapElement.current);
+            newMap.setTarget(mapElement.current);
         }
-
-
-        // if (newMap2.getTarget() === undefined) {
-        //     newMap2.setTarget("map");
-        // }
-
-        // let newMap3 = initMap()
-        // newMap3.setTarget(mapElement.current);
-
-
     }, );
 
     return (
