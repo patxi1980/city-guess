@@ -1,5 +1,6 @@
 import {createContext, useState} from "react";
 import {City} from "./Game";
+import {Map} from 'ol';
 
 export interface GameType {
     cities: City[],
@@ -9,6 +10,7 @@ export interface GameType {
     cityPos: number,
     gameOver: boolean,
     haveWon: boolean,
+    map: Map|null,
 }
 
 
@@ -34,6 +36,7 @@ export const GameContextProvider = ({children, cities}: GameContextProviderProps
         cityPos: 0,
         gameOver: false,
         haveWon: false,
+        map: null,
     };
 
     const [game, setGame] = useState<GameType>(initialGame);

@@ -49,12 +49,14 @@ export const GameComponent = () => {
             gameContext.game.gameOver = true;
         }
 
+        gameContext.game.currentCity = gameContext.game.cities[gameContext.game.cityPos];
+
         gameContext.setGame({
             ...gameContext.game,
             points: gameContext.game.points,
             lives: gameContext.game.lives,
             cityPos: gameContext.game.cityPos,
-            currentCity: gameContext.game.cities[gameContext.game.cityPos]
+            currentCity: gameContext.game.currentCity
         });
 
         alert("Distance to city: "+distance+"kms"+

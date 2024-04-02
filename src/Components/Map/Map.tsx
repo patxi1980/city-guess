@@ -1,4 +1,4 @@
-import React, {useCallback, useContext, useEffect} from 'react';
+import React, { useContext, useEffect, useRef } from 'react';
 import {Feature, Map, View} from 'ol';
 import TileLayer from 'ol/layer/Tile';
 import 'ol/ol.css';
@@ -9,138 +9,136 @@ import {LineString, Point} from "ol/geom";
 import {Icon, Style} from 'ol/style.js';
 import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";
-import {GameContext} from "../Game/GameContext";
+import {GameContext, GameContextType} from "../Game/GameContext";
 
 interface MapComponentProps {
     onChangeScore: any,
 }
 
+const initMap = (gameContext: GameContextType, onChangeScore: any) =>  {
+    const rasterLayer = new TileLayer({
+        source: new OGCMapTile({
+            url: 'https://maps.gnosis.earth/ogcapi/collections/NaturalEarth:raster:HYP_HR_SR_OB_DR/map/tiles/WebMercatorQuad',
+            crossOrigin: '',
+        }),
+    })
+
+    const iconFeatureUser = new Feature({
+        geometry: new Point([0, 0]),
+        name: 'icon-user'
+    });
+
+    const iconStyleUser = new Style({
+        image: new Icon({
+            anchor: [0.5, 46],
+            anchorXUnits: 'fraction',
+            anchorYUnits: 'pixels',
+            src: 'https://openlayers.org/en/latest/examples/data/icon.png',
+        }),
+    });
+
+    const iconFeatureCity = new Feature({
+        geometry: new Point([0, 0]),
+        name: 'icon-city'
+    });
+
+    const iconStyleCity = new Style({
+        image: new Icon({
+            anchor: [0.5, 46],
+            anchorXUnits: 'fraction',
+            anchorYUnits: 'pixels',
+            src: 'https://openlayers.org/en/latest/examples/data/icon.png',
+        }),
+    });
+
+    iconFeatureUser.setStyle(iconStyleUser);
+    iconFeatureCity.setStyle(iconStyleCity);
+
+    const vectorSource = new VectorSource({
+        features: [iconFeatureUser, iconFeatureCity],
+    });
+
+    const vectorLayer = new VectorLayer({
+        source: vectorSource,
+    });
+
+    const defaultCoordinates = [-3.902496927433447, 39.859293765063946];
+
+    const newMap = new Map({
+        layers: [rasterLayer, vectorLayer],
+        view: new View({
+            center: fromLonLat(defaultCoordinates),
+            zoom: 6,
+        }),
+        interactions: [],
+        controls: [],
+
+    });
+
+    newMap.on('loadend', function() {
+        const leftTopCord = fromLonLat([-14.171880997799288, 44.49539323310686]);
+        const rightBottomCord  = fromLonLat([4.820812930361028, 34.902218267988]);
+        const extent = olExtent.boundingExtent([leftTopCord, rightBottomCord]);
+        newMap.getView().fit(extent);
+    })
+
+    newMap.on('singleclick', function (event) {
+        console.log('single click');
+        console.log(gameContext);
+        let currentCity = gameContext.game.currentCity;
+        const coordinate = event.coordinate;
+        console.log(gameContext.game.currentCity.coords.toString());
+        let lineString = new LineString([coordinate, fromLonLat(currentCity.coords)])
+
+        iconFeatureUser.setGeometry(new Point(coordinate));
+        iconFeatureCity.setGeometry(new Point(fromLonLat(currentCity.coords)));
+
+        let length = lineString.getLength();
+        let distanceInKms = Math.trunc(Math.round((length / 1000) * 100) / 100);
+
+        onChangeScore(distanceInKms);
+    })
+
+    // newMap.setTarget(mapElement.current);
+    return newMap;
+};
+
+//const newMap = initMap();
+
 export const MapComponent = (({onChangeScore}: MapComponentProps) => {
 
     const gameContext = useContext(GameContext);
+    const mapElement = useRef<HTMLDivElement>(null!);
 
-    const initMap = useCallback(() =>  {
-        console.log('use memo new map');
-
-        const rasterLayer = new TileLayer({
-            source: new OGCMapTile({
-                url: 'https://maps.gnosis.earth/ogcapi/collections/NaturalEarth:raster:HYP_HR_SR_OB_DR/map/tiles/WebMercatorQuad',
-                crossOrigin: '',
-            }),
-        })
-
-        const iconFeatureUser = new Feature({
-            geometry: new Point([0, 0]),
-            name: 'icon-user'
-        });
-
-        const iconStyleUser = new Style({
-            image: new Icon({
-                anchor: [0.5, 46],
-                anchorXUnits: 'fraction',
-                anchorYUnits: 'pixels',
-                src: 'https://openlayers.org/en/latest/examples/data/icon.png',
-            }),
-        });
-
-        const iconFeatureCity = new Feature({
-            geometry: new Point([0, 0]),
-            name: 'icon-city'
-        });
-
-        const iconStyleCity = new Style({
-            image: new Icon({
-                anchor: [0.5, 46],
-                anchorXUnits: 'fraction',
-                anchorYUnits: 'pixels',
-                src: 'https://openlayers.org/en/latest/examples/data/icon.png',
-            }),
-        });
-
-        iconFeatureUser.setStyle(iconStyleUser);
-        iconFeatureCity.setStyle(iconStyleCity);
-
-        const vectorSource = new VectorSource({
-            features: [iconFeatureUser, iconFeatureCity],
-        });
-
-        const vectorLayer = new VectorLayer({
-            source: vectorSource,
-        });
-
-        // const defaultCoordinates = [-3.902496927433447, 39.859293765063946];
-        const defaultCoordinates = [-0.1064872527841283, 51.50534817904987];
-
-        console.log('init map');
-
-        const newMap = new Map({
-            target: "map",
-            layers: [rasterLayer, vectorLayer],
-            view: new View({
-                center: fromLonLat(defaultCoordinates),
-                zoom: 6,
-            }),
-            interactions: [],
-            controls: [],
-
-        });
-
-        console.log('map is loaded');
-
-
-        if (newMap) {
-
-            newMap.on('loadend', function() {
-                console.log('map load end');
-                const leftTopCord = fromLonLat([-14.171880997799288, 44.49539323310686]);
-                const rightBottomCord  = fromLonLat([4.820812930361028, 34.902218267988]);
-                const extent = olExtent.boundingExtent([leftTopCord, rightBottomCord]);
-                let previousResolution = newMap.getView().getResolution();
-                newMap.getView().fit(extent);
-                newMap.getView().setResolution(previousResolution);
-            })
-
-            newMap.on('singleclick', function (event) {
-                console.log('single click');
-                let currentCity = gameContext.game.currentCity;
-                const coordinate = event.coordinate;
-                console.log(gameContext.game.currentCity.coords.toString());
-                let lineString = new LineString([coordinate, fromLonLat(currentCity.coords)])
-
-                iconFeatureUser.setGeometry(new Point(coordinate));
-                iconFeatureCity.setGeometry(new Point(fromLonLat(currentCity.coords)));
-
-                let length = lineString.getLength();
-                let distanceInKms = Math.trunc(Math.round((length / 1000) * 100) / 100);
-
-                onChangeScore(distanceInKms);
-            })
+    let newMap2: any = null;
+    newMap2 = React.useMemo(() => {
+        if (newMap2 === null) {
+            return initMap(gameContext, onChangeScore);
         }
+        return newMap2;
+    }, [newMap2, gameContext, onChangeScore]);
 
-        return newMap;
-    }, [gameContext, onChangeScore]);
-
-
-    const newMap2 = React.useMemo(() => {
-        return initMap();
-    }, [initMap]);
+    // newMap2?.setTarget(mapElement.current);
 
     // setMap(newMap);
 
-    newMap2.setTarget("map");
-
-    console.log(typeof newMap2);
-    console.log(newMap2.getView());
-    console.log('get target');
-    console.log(newMap2.getTarget());
-
     useEffect(() => {
-        console.log('use Effect');
+        if (gameContext.game.cityPos === 0) {
+            newMap2.setTarget(mapElement.current);
+        }
+
+
+        // if (newMap2.getTarget() === undefined) {
+        //     newMap2.setTarget("map");
+        // }
+
+        // let newMap3 = initMap()
+        // newMap3.setTarget(mapElement.current);
 
 
     }, );
 
     return (
-        <div id="map" className="mapComponent" />
+        <div id="map" className="mapComponent" ref={mapElement} />
     )
 });
