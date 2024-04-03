@@ -1,42 +1,19 @@
 
-import React, {useEffect, useRef, useState} from "react";
+import React, {useContext} from "react";
 import {MapComponent} from "../Map/Map";
+import {GameContext} from "./GameContext";
 
-
-interface GameContextType {
-    cities: City[],
-    currentCity: City,
-    points: number,
-    lives: number,
-    cityPos: number,
-    gameOver: boolean,
-    haveWon: boolean,
-}
 
 export interface City {
     name: string,
     coords: number[],
 }
 
-interface GameComponentProps {
-    cities: City[],
-}
-
 const kmsToReduceLives: number = 50;
 
-export const GameComponent = ({cities}: GameComponentProps) => {
+export const GameComponent = () => {
 
-    let initialGame = {
-        points: 0,
-        lives: 10,
-        cities: cities,
-        currentCity: {} as City,
-        cityPos: 0,
-        gameOver: false,
-        haveWon: false,
-    }
-    const [game, setGame] = useState<GameContextType>(initialGame);
-    const mapRef = useRef<any>();
+    const gameContext = useContext(GameContext);
 
     const calculatePoints = (distanceInKm: number) => {
         let livesLost = Math.trunc(distanceInKm / kmsToReduceLives);
@@ -44,20 +21,10 @@ export const GameComponent = ({cities}: GameComponentProps) => {
         updateGame(livesLost, distanceInKm);
     };
 
-
-
-    const updateCity = () => {
-        game.currentCity = cities[game.cityPos];
-
-        if (mapRef.current) {
-            mapRef.current.updateCity(game.currentCity);
-        }
-    }
-
     const updateGame = (livesLost: number, distance: number) => {
 
-        if (game.gameOver) {
-            if (game.haveWon) {
+        if (gameContext.game.gameOver) {
+            if (gameContext.game.haveWon) {
                 alert("Game is Over - You Won");
             } else {
                 alert("Game is Over - You Lost");
@@ -66,52 +33,48 @@ export const GameComponent = ({cities}: GameComponentProps) => {
             return;
         }
 
-        game.lives = Math.max(0, game.lives - livesLost);
+        gameContext.game.lives = Math.max(0, gameContext.game.lives - livesLost);
 
-        if (game.lives > 0) {
-            game.points++
+        if (gameContext.game.lives > 0) {
+            gameContext.game.points++
 
-            if (cities.length > (game.cityPos + 1)) {
-                game.cityPos++;
+            if (gameContext.game.cities.length > (gameContext.game.cityPos + 1)) {
+                gameContext.game.cityPos++;
             } else {
-                game.gameOver = true;
-                game.haveWon = true;
+                gameContext.game.gameOver = true;
+                gameContext.game.haveWon = true;
             }
 
         } else {
-            game.gameOver = true;
+            gameContext.game.gameOver = true;
         }
 
-        updateCity();
+        gameContext.game.currentCity = gameContext.game.cities[gameContext.game.cityPos];
 
-        setGame({
-            ...game,
-            points: game.points,
-            lives: game.lives,
-            cityPos: game.cityPos,
-            currentCity: cities[game.cityPos]
+        gameContext.setGame({
+            ...gameContext.game,
+            points: gameContext.game.points,
+            lives: gameContext.game.lives,
+            cityPos: gameContext.game.cityPos,
+            currentCity: gameContext.game.currentCity
         });
 
         alert("Distance to city: "+distance+"kms"+
             "\nLives lost: "+livesLost+
-            "\nPending Lives: "+game.lives+
-            "\nScore: "+game.points
+            "\nPending Lives: "+gameContext.game.lives+
+            "\nScore: "+gameContext.game.points
         );
     }
 
 
-    useEffect(() => {
-        updateCity();
-    });
-
     return (
         <div>
             <div className="gameHeader">
-                City: {game.cities[game.cityPos].name}
+                City: {gameContext.game?.cities[gameContext.game?.cityPos].name}
             </div>
-            <MapComponent onChangeScore={calculatePoints} ref={mapRef} />
+            <MapComponent onChangeScore={calculatePoints}  />
             <div className="gameFooter">
-                Points - {game.points} Lives - {game.lives}
+                Points - {gameContext.game?.points} Lives - {gameContext.game?.lives}
             </div>
         </div>
     )
