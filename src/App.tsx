@@ -7,8 +7,6 @@ import {GameContextProvider} from "./Components/Game/GameContext";
 let cities = jsonCities;
 
 const prepareCities = (array: City[]) =>  {
-//    array.sort(() => Math.random() - 0.5);
-
     let length = array.length;
     for (let i = length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -23,14 +21,17 @@ const prepareCities = (array: City[]) =>  {
 cities = prepareCities(cities);
 
 function App() {
-  return (
+
+    document.title = 'City Guess';
+
+    return (
       <div className="App">
           <GameContextProvider cities={cities}>
               <GameComponent />
           </GameContextProvider>
         <a href='https://mxd.codes/articles/how-to-create-a-web-map-with-open-layers-and-react'>Guide for open layers and react</a>
       </div>
-  );
+    );
 }
 
 export default App;
